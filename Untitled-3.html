@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wochenplan App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      width: 900px;
+      display: flex;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .left-column, .right-column {
+      width: 50%;
+      padding: 10px;
+    }
+
+    .week-plan {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .day-section {
+      width: 100%;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .day-section h3 {
+      margin-bottom: 10px;
+    }
+
+    .day-section ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .day-section li {
+      background-color: #e0f7fa;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .day-section li.done {
+      background-color: #dcedc8;
+      text-decoration: line-through;
+    }
+
+    .day-section input[type="checkbox"] {
+      margin-left: 10px;
+    }
+
+    .motivations {
+      text-align: center;
+    }
+
+    .motivations p {
+      font-size: 1.2em;
+      font-style: italic;
+      color: #333;
+    }
+
+    .task-input {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      flex-direction: column;
+    }
+
+    .task-input input,
+    .task-input button,
+    .task-input select {
+      padding: 10px;
+      margin: 5px;
+    }
+
+    .task-input input[type="time"] {
+      width: 80px;
+    }
+
+    .week-plan-wrapper {
+      padding: 10px;
+      background-color: #f4f4f9;
+      border-radius: 10px;
+      height: 500px;
+      overflow-y: auto;
+    }
+
+    .gym-plan {
+      display: none;
+      background-color: #e3f2fd;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    .gym-edit {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #fff3e0;
+      border-radius: 5px;
+    }
+
+    .gym-edit input {
+      padding: 5px;
+      margin: 5px;
+    }
+
+    .gym-edit button {
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #0288d1;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .gym-button {
+      background-color: #0288d1;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    .gym-button:hover {
+      background-color: #0277bd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-column">
+      <header>
+        <h1>Aufgabe hinzufügen</h1>
+        <p>Wähle einen Tag und gib eine Aufgabe mit Uhrzeiten an.</p>
+      </header>
+
+      <!-- Eingabefelder für Aufgaben und Uhrzeiten -->
+      <div class="task-input">
+        <input type="text" id="taskInput" placeholder="Aufgabe hinzufügen">
+        <input type="time" id="startTimeInput" placeholder="Startzeit">
+        <input type="time" id="endTimeInput" placeholder="Endzeit">
+        <select id="daySelect">
+          <option value="Montag">Montag</option>
+          <option value="Dienstag">Dienstag</option>
+          <option value="Mittwoch">Mittwoch</option>
+          <option value="Donnerstag">Donnerstag</option>
+          <option value="Freitag">Freitag</option>
+          <option value="Samstag">Samstag</option>
+          <option value="Sonntag">Sonntag</option>
+        </select>
+        <button onclick="addTask()">Hinzufügen</button>
+      </div>
+
+      <!-- Motivationsbereich -->
+      <div class="motivations">
+        <h2>Motivation des Tages</h2>
+        <p id="motivationText"></p>
+        <button onclick="newMotivation()">Nächster Motivationsspruch</button>
+      </div>
+
+      <!-- Gym Plan Button -->
+      <button class="gym-button" onclick="toggleGymForm()">Trainingsplan bearbeiten</button>
+    </div>
+
+    <div class="right-column">
+      <header>
+        <h1>Wochenübersicht</h1>
+        <p>Alle Aufgaben der Woche nach Uhrzeit sortiert.</p>
+      </header>
+
+      <!-- Wochenübersicht -->
+      <div class="week-plan-wrapper" id="week-plan">
+        <!-- Aufgaben für die ganze Woche werden hier angezeigt -->
+      </div>
+
+      <!-- Gym Trainingsplan Bearbeiten -->
+      <div id="gym-edit-form" class="gym-edit" style="display: none;">
+        <h4>Trainingsplan bearbeiten</h4>
+        <input type="text" id="gymDay" placeholder="Wochentag">
+        <input type="text" id="gymExercise" placeholder="Übung">
+        <button onclick="addExercise()">Übung hinzufügen</button>
+      </div>
+
+      <!-- Gym Plan Anzeige -->
+      <div id="gym-plan" class="gym-plan">
+        <h3>Trainingsplan</h3>
+        <ul id="gym-plan-list">
+          <!-- Trainingsplan wird hier angezeigt -->
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const motivations = [
+      "Du schaffst das! Ein Schritt nach dem anderen.",
+      "Kleine Fortschritte sind auch Fortschritte.",
+      "Glaube an dich selbst, du hast schon so viel erreicht!",
+      "Erfolg kommt nicht über Nacht, aber du bist auf dem richtigen Weg!",
+      "Jeder Tag ist eine neue Chance, deinem Ziel näher zu kommen."
+    ];
+
+    // Aufgaben für jeden Tag
+    let tasks = {
+      Montag: [],
+      Dienstag: [],
+      Mittwoch: [],
+      Donnerstag: [],
+      Freitag: [],
+      Samstag: [],
+      Sonntag: []
+    };
+
+    // Gym Trainingsplan (wird individuell angepasst)
+    let gymPlan = {
+      Montag: [],
+      Dienstag: [],
+      Mittwoch: [],
+      Donnerstag: [],
+      Freitag: [],
+      Samstag: [],
+      Sonntag: []
+    };
+
+    // Motivationstext anzeigen
+    function newMotivation() {
+      const randomIndex = Math.floor(Math.random() * motivations.length);
+      document.getElementById('motivationText').innerText = motivations[randomIndex];
+    }
+
+    // Aufgabe für einen bestimmten Tag und eine Uhrzeit (von-bis) hinzufügen
+    function addTask() {
+      const taskInput = document.getElementById('taskInput');
+      const startTimeInput = document.getElementById('startTimeInput');
+      const endTimeInput = document.getElementById('endTimeInput');
+      const daySelect = document.getElementById('daySelect');
+      const task = taskInput.value.trim();
+      const startTime = startTimeInput.value.trim();
+      const endTime = endTimeInput.value.trim();
+      const selectedDay = daySelect.value;
+
+      // Wenn alle Felder ausgefüllt sind, die Aufgabe hinzufügen
+      if (task && startTime && endTime) {
+        tasks[selectedDay].push({ task, startTime, endTime, done: false });
+        sortTasksByTime(selectedDay); // Aufgaben nach Uhrzeit sortieren
+        taskInput.value = '';
+        startTimeInput.value = '';
+        endTimeInput.value = '';
+        renderWeekPlan();
+      }
+    }
+
+    // Aufgabe als erledigt markieren
+    function toggleTaskDone(day, index) {
+      tasks[day][index].done = !tasks[day][index].done;
+      renderWeekPlan();
+    }
+
+    // Aufgaben nach Uhrzeit sortieren
+    function sortTasksByTime(day) {
+      tasks[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    }
+
+    // Gym Plan anzeigen oder bearbeiten
+    function toggleGymForm() {
+      const gymEditForm = document.getElementById('gym-edit-form');
+      gymEditForm.style.display = gymEditForm.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Übung zum Gym Plan hinzufügen
+    function addExercise() {
+      const gymDay = document.getElementById('gymDay').value.trim();
+      const gymExercise = document.getElementById('gymExercise').value.trim();
+
+      if (gymDay && gymExercise) {
+        gymPlan[gymDay].push(gymExercise);
+        document.getElementById('gymDay').value = '';
+        document.getElementById('gymExercise').value = '';
+        renderGymPlan();
+      }
+    }
+
+    // Gym Plan anzeigen
+    function renderGymPlan() {
+      const gymPlanList = document.getElementById('gym-plan-list');
+      gymPlanList.innerHTML = ''; // Clear previous gym plan
+
+      Object.keys(gymPlan).forEach(day => {
+        const exercises = gymPlan[day];
+        if (exercises.length > 0) {
+          const dayExercises = document.createElement('div');
+          dayExercises.innerHTML = `<h4>${day}</h4><ul>`;
+          exercises.forEach(exercise => {
+            const li = document.createElement('li');
+            li.textContent = exercise;
+            dayExercises.appendChild(li);
+          });
+          dayExercises.innerHTML += '</ul>';
+          gymPlanList.appendChild(dayExercises);
+        }
+      });
+    }
+
+    // Wochenplan rendern
+    function renderWeekPlan() {
+      const weekPlan = document.getElementById('week-plan');
+      weekPlan.innerHTML = ''; // Clear previous week plan
+
+      Object.keys(tasks).forEach(day => {
+        const daySection = document.createElement('div');
+        daySection.classList.add('day-section');
+        daySection.innerHTML = `<h3>${day}</h3>`;
+        const taskList = document.createElement('ul');
+
+        tasks[day].forEach((task, index) => {
+          const taskItem = document.createElement('li');
+          taskItem.classList.toggle('done', task.done);
+          taskItem.innerHTML = `${task.startTime} - ${task.endTime} : ${task.task}
+          <input type="checkbox" ${task.done ? 'checked' : ''} onclick="toggleTaskDone('${day}', ${index})" />`;
+
+          // Wenn der Tag "Gym" ist, zeige den Trainingsplan für diesen Tag an
+          if (task.task.toLowerCase() === 'gym') {
+            taskItem.addEventListener('click', function() {
+              toggleGymVisibility(day);
+            });
+          }
+
+          taskList.appendChild(taskItem);
+        });
+
+        daySection.appendChild(taskList);
+        weekPlan.appendChild(daySection);
+      });
+    }
+
+    // Gym Plan für den Tag anzeigen oder ausblenden
+    function toggleGymVisibility(day) {
+      const gymPlanDiv = document.getElementById('gym-plan');
+      const gymPlanList = document.getElementById('gym-plan-list');
+      if (gymPlanDiv.style.display === 'block') {
+        gymPlanDiv.style.display = 'none'; // Verstecken
+      } else {
+        gymPlanDiv.style.display = 'block'; // Anzeigen
+        gymPlanList.innerHTML = '';
+        const exercises = gymPlan[day];
+        if (exercises.length === 0) {
+          gymPlanList.innerHTML = `<p>Kein Trainingsplan für heute.</p>`;
+        } else {
+          exercises.forEach(exercise => {
+            const li = document.createElement('li');
+            li.textContent = exercise;
+            gymPlanList.appendChild(li);
+          });
+        }
+      }
+    }
+
+    // Initiale Motivation und Wochenplan rendern
+    newMotivation();
+    renderWeekPlan();
+  </script>
+</body>
+</html>
